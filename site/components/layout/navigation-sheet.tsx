@@ -9,12 +9,16 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Cancel01Icon } from "@hugeicons/core-free-icons"
 
 interface NavigationSheetContentProps {
     title: string
     description?: string
     children: React.ReactNode
     contentKey: string
+    onClose?: () => void
 }
 
 export function NavigationSheetContent({
@@ -22,6 +26,7 @@ export function NavigationSheetContent({
     description,
     children,
     contentKey,
+    onClose,
 }: NavigationSheetContentProps) {
     const [displayContent, setDisplayContent] = React.useState(children)
     const [isVisible, setIsVisible] = React.useState(true)
@@ -42,7 +47,23 @@ export function NavigationSheetContent({
     }, [contentKey, children])
 
     return (
-        <SheetContent side="right" className="bg-[#F6F5F5]">
+        <SheetContent 
+            side="right" 
+            showCloseButton={false}
+            className="bg-[#F6F5F5] !w-full !max-w-full !h-[calc(100vh-var(--header-height,80px))] !top-[var(--header-height,80px)] !bottom-0 md:!top-[var(--header-height,80px)] md:!bottom-0 md:!h-[calc(100vh-var(--header-height,80px))] md:!w-4/5 md:!max-w-md"
+        >
+            {/* Custom Close Button - Same size as mobile menu on mobile */}
+            {onClose && (
+              <Button
+                variant="ghost"
+                onClick={onClose}
+                className="absolute top-4 right-4 md:top-3 md:right-3 h-10 w-10 md:h-9 md:w-9 p-0"
+                aria-label="Close menu"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} className="!h-6 !w-6 md:!h-5 md:!w-5" strokeWidth={2} />
+                <span className="sr-only">Close</span>
+              </Button>
+            )}
             <SheetHeader className="space-y-0 pb-0">
                 <SheetTitle className="text-xl font-semibold">{title}</SheetTitle>
                 {description && (
@@ -84,6 +105,7 @@ export function NavigationSheet({
                 title={title}
                 description={description}
                 contentKey={contentKey}
+                onClose={() => onOpenChange(false)}
             >
                 {children}
             </NavigationSheetContent>

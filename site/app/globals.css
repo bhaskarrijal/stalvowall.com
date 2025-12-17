@@ -114,4 +114,12 @@
   .shadow-inner {
     box-shadow: none !important;
   }
+
+  /* Disable all focus rings */
+  *:focus-visible {
+    outline: none !important;
+    --tw-ring-width: 0 !important;
+    --tw-ring-offset-width: 0 !important;
+    box-shadow: none !important;
+  }
 }
