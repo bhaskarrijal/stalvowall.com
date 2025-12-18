@@ -11,115 +11,102 @@ import { NavigationSheet } from "./navigation-sheet"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { topNavLinks, mainNavLinks, renderSubMenuItems, type NavLink } from "@/lib/navigation"
 
+function Logo() {
+  return (
+    <Link href="/" className="flex items-center shrink-0" aria-label="Stalvowall home">
+      <span className="text-2xl md:text-3xl font-bold tracking-tight">
+        <span className="text-primary">stalvowall</span>
+        <span className="text-muted-foreground/60 text-lg md:text-xl font-normal">.com</span>
+      </span>
+    </Link>
+  )
+}
+
 export function Header() {
+  const headerRef = React.useRef<HTMLElement>(null)
+  const searchInputRef = React.useRef<HTMLInputElement>(null)
+
   const [searchOpen, setSearchOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
-  const searchInputRef = React.useRef<HTMLInputElement>(null)
-  const [openSheetHref, setOpenSheetHref] = React.useState<string | null>(null)
-  const [currentSheetData, setCurrentSheetData] = React.useState<{
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const [openedFromMobileMenu, setOpenedFromMobileMenu] = React.useState(false)
+  const [sheetData, setSheetData] = React.useState<{
+    href: string
     title: string
     description?: string
     content: React.ReactNode
   } | null>(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
-  const [openedFromMobileMenu, setOpenedFromMobileMenu] = React.useState(false)
-
-  const handleSearchToggle = React.useCallback(() => {
-    setSearchOpen((prev) => !prev)
-  }, [])
-
-  const handleSearchClose = React.useCallback(() => {
-    setSearchOpen(false)
-    setSearchValue("")
-  }, [])
-
-  const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Escape") {
-        handleSearchClose()
-      }
-      if (e.key === "Enter" && searchValue.trim()) {
-        console.log("Search:", searchValue)
-      }
-    },
-    [searchValue, handleSearchClose]
-  )
-
-  React.useEffect(() => {
-    if (searchOpen && searchInputRef.current) {
-      searchInputRef.current.focus()
-    }
-  }, [searchOpen])
-
-  const headerRef = React.useRef<HTMLElement>(null)
 
   React.useEffect(() => {
     if (headerRef.current) {
-      const height = headerRef.current.offsetHeight
-      document.documentElement.style.setProperty('--header-height', `${height}px`)
+      document.documentElement.style.setProperty('--header-height', `${headerRef.current.offsetHeight}px`)
     }
   }, [])
 
-  const handleMenuClick = React.useCallback((link: NavLink) => {
-    if (link.useSheet && link.subMenuItems) {
-      // Check if we're on mobile
-      const isMobile = window.innerWidth < 768
-      if (isMobile) {
-        setOpenedFromMobileMenu(true)
-        setMobileMenuOpen(false)
-        // Small delay to allow mobile menu to close first
-        setTimeout(() => {
-          setOpenSheetHref(link.href)
-          setCurrentSheetData({
-            title: link.sheetTitle || link.label,
-            description: link.sheetDescription,
-            content: renderSubMenuItems(link.subMenuItems!),
-          })
-        }, 200)
-      } else {
-        setOpenedFromMobileMenu(false)
-        if (openSheetHref === link.href) {
-          setOpenSheetHref(null)
-          setCurrentSheetData(null)
-        } else {
-          setOpenSheetHref(link.href)
-          setCurrentSheetData({
-            title: link.sheetTitle || link.label,
-            description: link.sheetDescription,
-            content: renderSubMenuItems(link.subMenuItems!),
-          })
-        }
-      }
-    } else {
+  React.useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus()
+  }, [searchOpen])
+
+  const closeSearch = () => {
+    setSearchOpen(false)
+    setSearchValue("")
+  }
+
+  const openSheet = (link: NavLink) => {
+    setSheetData({
+      href: link.href,
+      title: link.sheetTitle || link.label,
+      description: link.sheetDescription,
+      content: renderSubMenuItems(link.subMenuItems!),
+    })
+  }
+
+  const closeSheet = () => setSheetData(null)
+
+  const handleSheetClick = (link: NavLink, fromMobile = false) => {
+    if (!link.useSheet || !link.subMenuItems) {
       setMobileMenuOpen(false)
+      return
     }
-  }, [openSheetHref])
+
+    if (fromMobile) {
+      setOpenedFromMobileMenu(true)
+      setMobileMenuOpen(false)
+      setTimeout(() => openSheet(link), 200)
+    } else {
+      setOpenedFromMobileMenu(false)
+      sheetData?.href === link.href ? closeSheet() : openSheet(link)
+    }
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") closeSearch()
+    if (e.key === "Enter" && searchValue.trim()) console.log("Search:", searchValue)
+  }
+
+  const handleSearchBlur = () => {
+    if (!searchValue.trim()) setTimeout(closeSearch, 150)
+  }
+
+  const searchInputProps = {
+    ref: searchInputRef,
+    type: "search" as const,
+    placeholder: "Search...",
+    value: searchValue,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => setSearchValue(e.target.value),
+    onKeyDown: handleSearchKeyDown,
+    onBlur: handleSearchBlur,
+    "aria-label": "Search",
+  }
 
   return (
     <>
-      <header ref={headerRef} className="w-full border-b bg-background sticky top-0 z-50">
+      <header ref={headerRef} className="w-full border-b bg-background sticky top-0 z-50 shadow-md">
         <div className="mx-auto max-w-screen-2xl px-6 lg:px-8">
-          {/* Desktop Layout */}
           <div className="hidden md:flex items-stretch gap-8 py-4">
-            {/* Logo - Left Side */}
-            <Link
-              href="/"
-              className="flex items-center shrink-0"
-              aria-label="Stalvowall home"
-            >
-              <span className="text-3xl font-bold tracking-tight">
-                <span className="text-primary">
-                  stalvowall
-                </span>
-                <span className="text-muted-foreground/60 text-xl font-normal">
-                  .com
-                </span>
-              </span>
-            </Link>
+            <Logo />
 
-            {/* Right Side - All Navigation */}
             <div className="flex flex-col justify-between flex-1 py-1 gap-2">
-              {/* Top Row Navigation */}
               <nav className="flex items-center justify-end gap-6 text-[13px]">
                 {topNavLinks.map((link) => (
                   <Link
@@ -139,35 +126,18 @@ export function Header() {
                 </Link>
               </nav>
 
-              {/* Bottom Row - Main Navigation + Search */}
               <div className="flex items-center justify-end gap-7">
                 <nav className="flex items-center gap-7">
-                  {mainNavLinks.map((link) => {
-                    if (link.useSheet && link.subMenuItems) {
-                      return (
-                        <button
-                          key={link.href}
-                          onClick={() => {
-                            setOpenedFromMobileMenu(false)
-                            if (openSheetHref === link.href) {
-                              setOpenSheetHref(null)
-                              setCurrentSheetData(null)
-                            } else {
-                              setOpenSheetHref(link.href)
-                              setCurrentSheetData({
-                                title: link.sheetTitle || link.label,
-                                description: link.sheetDescription,
-                                content: renderSubMenuItems(link.subMenuItems!),
-                              })
-                            }
-                          }}
-                          className="text-base font-semibold text-foreground hover:text-primary transition-colors whitespace-nowrap cursor-pointer"
-                        >
-                          {link.label}
-                        </button>
-                      )
-                    }
-                    return (
+                  {mainNavLinks.map((link) =>
+                    link.useSheet && link.subMenuItems ? (
+                      <button
+                        key={link.href}
+                        onClick={() => handleSheetClick(link)}
+                        className="text-base font-semibold text-foreground hover:text-primary transition-colors whitespace-nowrap cursor-pointer"
+                      >
+                        {link.label}
+                      </button>
+                    ) : (
                       <Link
                         key={link.href}
                         href={link.href}
@@ -176,73 +146,36 @@ export function Header() {
                         {link.label}
                       </Link>
                     )
-                  })}
+                  )}
                 </nav>
               </div>
             </div>
+
             <Separator orientation="vertical" />
-            {/* Search */}
+
             <div className="flex items-center shrink-0">
               {searchOpen ? (
                 <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 duration-200">
-                  <Input
-                    ref={searchInputRef}
-                    type="search"
-                    placeholder="Search..."
-                    value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onBlur={() => {
-                      if (!searchValue.trim()) {
-                        setTimeout(() => handleSearchClose(), 150)
-                      }
-                    }}
-                    className="w-56"
-                    aria-label="Search"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleSearchClose}
-                    aria-label="Close search"
-                  >
+                  <Input {...searchInputProps} className="w-56" />
+                  <Button variant="ghost" size="icon" onClick={closeSearch} aria-label="Close search">
                     <HugeiconsIcon icon={Cancel01Icon} className="h-5 w-5" />
                   </Button>
                 </div>
               ) : (
                 <button
-                  onClick={handleSearchToggle}
+                  onClick={() => setSearchOpen(true)}
                   className="flex flex-col items-center gap-0.5 text-primary hover:text-primary/80 transition-colors"
                   aria-label="Open search"
                 >
                   <HugeiconsIcon icon={SearchIcon} className="h-7 w-7" />
-                  <span className="text-sm font-semibold">
-                    Search
-                  </span>
+                  <span className="text-sm font-semibold">Search</span>
                 </button>
               )}
             </div>
           </div>
 
-          {/* Mobile Layout */}
           <div className="flex md:hidden items-center justify-between py-4 gap-4">
-            {/* Logo */}
-            <Link
-              href="/"
-              className="flex items-center shrink-0"
-              aria-label="Stalvowall home"
-            >
-              <span className="text-2xl font-bold tracking-tight">
-                <span className="text-primary">
-                  stalvowall
-                </span>
-                <span className="text-muted-foreground/60 text-lg font-normal">
-                  .com
-                </span>
-              </span>
-            </Link>
-
-            {/* Hamburger and Search Icons */}
+            <Logo />
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -252,7 +185,7 @@ export function Header() {
                 <HugeiconsIcon icon={Menu01Icon} className="h-6 w-6" />
               </button>
               <button
-                onClick={handleSearchToggle}
+                onClick={() => setSearchOpen(true)}
                 className="text-primary hover:text-primary/80 transition-colors"
                 aria-label="Open search"
               >
@@ -261,31 +194,11 @@ export function Header() {
             </div>
           </div>
 
-          {/* Mobile Search Input */}
           {searchOpen && (
             <div className="md:hidden pb-4 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex items-center gap-2">
-                <Input
-                  ref={searchInputRef}
-                  type="search"
-                  placeholder="Search..."
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onBlur={() => {
-                    if (!searchValue.trim()) {
-                      setTimeout(() => handleSearchClose(), 150)
-                    }
-                  }}
-                  className="flex-1"
-                  aria-label="Search"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSearchClose}
-                  aria-label="Close search"
-                >
+                <Input {...searchInputProps} className="flex-1" />
+                <Button variant="ghost" size="icon" onClick={closeSearch} aria-label="Close search">
                   <HugeiconsIcon icon={Cancel01Icon} className="h-5 w-5" />
                 </Button>
               </div>
@@ -294,10 +207,8 @@ export function Header() {
         </div>
       </header>
 
-      {/* Mobile Menu Sheet */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetContent side="right" showCloseButton={false} className="!w-full !max-w-full !h-[calc(100vh-var(--header-height,80px))] !top-[var(--header-height,80px)] !bottom-0 md:!top-[var(--header-height,80px)] md:!bottom-0 md:!h-[calc(100vh-var(--header-height,80px))] md:!w-4/5 p-0">
-          {/* Custom Close Button - Bigger on Mobile */}
           <Button
             variant="ghost"
             onClick={() => setMobileMenuOpen(false)}
@@ -308,7 +219,6 @@ export function Header() {
             <span className="sr-only">Close</span>
           </Button>
           <div className="flex flex-col h-full overflow-y-auto px-6 py-6">
-            {/* Second Navbar Items - Inline */}
             <nav className="flex flex-wrap items-center gap-4 pb-6 mb-6 border-b border-muted">
               {topNavLinks.map((link) => (
                 <Link
@@ -330,21 +240,17 @@ export function Header() {
               </Link>
             </nav>
 
-            {/* Main Menu Items */}
             <nav className="flex flex-col gap-1">
-              {mainNavLinks.map((link) => {
-                if (link.useSheet && link.subMenuItems) {
-                  return (
-                    <button
-                      key={link.href}
-                      onClick={() => handleMenuClick(link)}
-                      className="text-left text-base font-semibold text-foreground hover:text-primary transition-colors py-3"
-                    >
-                      {link.label}
-                    </button>
-                  )
-                }
-                return (
+              {mainNavLinks.map((link) =>
+                link.useSheet && link.subMenuItems ? (
+                  <button
+                    key={link.href}
+                    onClick={() => handleSheetClick(link, true)}
+                    className="text-left text-base font-semibold text-foreground hover:text-primary transition-colors py-3"
+                  >
+                    {link.label}
+                  </button>
+                ) : (
                   <Link
                     key={link.href}
                     href={link.href}
@@ -354,21 +260,18 @@ export function Header() {
                     {link.label}
                   </Link>
                 )
-              })}
+              )}
             </nav>
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Shared Navigation Sheet */}
-      {currentSheetData && (
+      {sheetData && (
         <NavigationSheet
-          open={openSheetHref !== null}
+          open={!!sheetData}
           onOpenChange={(open) => {
             if (!open) {
-              setOpenSheetHref(null)
-              setCurrentSheetData(null)
-              // On mobile, reopen the main menu sheet when submenu closes
+              closeSheet()
               if (openedFromMobileMenu) {
                 setTimeout(() => {
                   setMobileMenuOpen(true)
@@ -377,11 +280,11 @@ export function Header() {
               }
             }
           }}
-          title={currentSheetData.title}
-          description={currentSheetData.description}
-          contentKey={openSheetHref || ""}
+          title={sheetData.title}
+          description={sheetData.description}
+          contentKey={sheetData.href}
         >
-          {currentSheetData.content}
+          {sheetData.content}
         </NavigationSheet>
       )}
     </>
