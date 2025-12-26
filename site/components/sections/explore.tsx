@@ -62,7 +62,7 @@ export function Explore() {
               href={exploreCards[0].href}
               className="group relative overflow-hidden bg-[#E5E1DB] hover:shadow-lg transition-shadow"
             >
-              <div className="grid grid-cols-[1fr_auto] h-full">
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] h-full">
                 {/* Content */}
                 <div className="p-8 md:p-12 flex flex-col justify-between">
                   <div>
@@ -93,7 +93,7 @@ export function Explore() {
                 </div>
 
                 {/* Image */}
-                <div className="relative w-[280px] md:w-[380px] overflow-hidden">
+                <div className="relative w-full h-[240px] md:w-[380px] md:h-auto overflow-hidden">
                   <Image
                     src={exploreCards[0].image}
                     alt={exploreCards[0].title}
@@ -109,7 +109,7 @@ export function Explore() {
               href={exploreCards[1].href}
               className="group relative overflow-hidden bg-[#E5E1DB] hover:shadow-lg transition-shadow"
             >
-              <div className="grid grid-cols-[1fr_auto] h-full">
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] h-full">
                 {/* Content */}
                 <div className="p-8 md:p-12 flex flex-col justify-between">
                   <div>
@@ -140,7 +140,7 @@ export function Explore() {
                 </div>
 
                 {/* Image */}
-                <div className="relative w-[280px] md:w-[380px] overflow-hidden">
+                <div className="relative w-full h-[240px] md:w-[380px] md:h-auto overflow-hidden">
                   <Image
                     src={exploreCards[1].image}
                     alt={exploreCards[1].title}
