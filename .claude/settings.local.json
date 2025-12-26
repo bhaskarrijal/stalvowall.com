@@ -4,7 +4,10 @@
       "Bash(npm run build:*)",
       "WebFetch(domain:www.xella.com)",
       "WebSearch",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm i:*)",
+      "Bash(mkdir:*)"
     ]
   }
 }
